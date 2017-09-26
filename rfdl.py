@@ -2,18 +2,23 @@
 # -*- coding: utf-8 -*-
 
 """Downloader for radio france podcasts. Because they do not want to provide a
-link on podcast page..."""
+link on podcast page."""
 
 import requests
 import re
-import sys
 from clint.textui import progress
+from argparse import ArgumentParser
 
 CHUNK_S = 1024*1024
 
-
 def main():
-    url = sys.argv[1] if len(sys.argv) > 1 else "https://www.franceculture.fr/emissions/les-chemins-de-la-philosophie/philosophie-des-jeux-video-14-de-lantiquite-nos-jours"
+    parser = ArgumentParser(description=__doc__)
+    parser.add_argument("url", help="URL of the podcast page on Radio France website")
+    args = parser.parse_args()
+    download(args.url)
+
+def download(url):
+    """Download podcast as mp3 from url"""
     final_file = url.split("/")[-1] + ".mp3"
     session = requests.Session()
 
@@ -29,9 +34,13 @@ def main():
         print(f"Downloading {mp3_url}")
         stream = session.get(mp3_url, stream=True)
         size = int(stream.headers["Content-Length"]) if "Content-Length" in stream.headers else 0
-        for content in progress.bar(stream.iter_content(chunk_size=CHUNK_S), expected_size=size/(CHUNK_S)):
-            output.write(content)
-            output.flush()
+
+        content_with_bar = progress.bar(
+            stream.iter_content(chunk_size=CHUNK_S),
+            expected_size=size/(CHUNK_S) + 1
+        )
+        for chunk in content_with_bar:
+            output.write(chunk)
 
 if __name__ == '__main__':
     main()
