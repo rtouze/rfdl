@@ -5,11 +5,12 @@
 
 import requests
 import re
+import sys
 
 
 def main():
     print("go")
-    url  = "https://www.franceculture.fr/emissions/les-chemins-de-la-philosophie/philosophie-des-jeux-video-14-de-lantiquite-nos-jours"
+    url = sys.argv[1] if len(sys.argv) > 1 else "https://www.franceculture.fr/emissions/les-chemins-de-la-philosophie/philosophie-des-jeux-video-14-de-lantiquite-nos-jours"
     final_file = url.split("/")[-1] + ".mp3"
     response = requests.get(url)
     print(type(response.text))
@@ -17,7 +18,6 @@ def main():
 
     # on cherche data-asset-source="https://media.radiofrance-podcast.net/podcast09/10467-18.09.2017-ITEMA_21437558-1.mp3"
     my_re = re.compile(r'data-asset-source="(https://media.radiofrance-podcast.net/.*\.mp3)"')
-    #my_re = re.compile(r'data-asset-source')
     search_result = my_re.search(response.text)
     mp3_url = None
     if search_result:
@@ -28,11 +28,8 @@ def main():
         print(f"Downloading {mp3_url}")
         output.write(requests.get(mp3_url).content)
         print(f"{output.name} downloaded!")
-
-
     
     pass
 
 if __name__ == '__main__':
     main()
-
